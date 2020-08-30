@@ -2,8 +2,6 @@
 Start Date: 29.08.2020
 Source Web: https://howtomechatronics.com/tutorials/arduino/arduino-ds3231-real-time-clock-tutorial
 DS3231 Library Document Web: http://www.rinkydinkelectronics.com/library.php?id=73
-
-
 */
 
 /*
@@ -27,8 +25,6 @@ DS3231 Library Document Web: http://www.rinkydinkelectronics.com/library.php?id=
 #define TMR1_OUT 13 
 #define TMR2_OUT 14 //A0 pin
 
-
-
   DS3231  rtc(SDA, SCL);
   //Parameters: (rs, enable, d4, d5, d6, d7) 
   LiquidCrystal lcd(12, 11, 5, 4, 3, 2); // Creates an LCD object. 
@@ -38,7 +34,6 @@ DS3231 Library Document Web: http://www.rinkydinkelectronics.com/library.php?id=
                  DAY_ADR, MONTH_ADR, YEAR_ADR, DOW_ADR} CursPlace = Home;
                  
   Time RTCC; //Class Varible contain all .hour .min .sec .date .mon .year .dow
-
   /********************************************************************/
 
 
@@ -46,8 +41,7 @@ DS3231 Library Document Web: http://www.rinkydinkelectronics.com/library.php?id=
 void setup() { 
 
   
-  CursPlace = Home;
-
+  CursPlace = Home; //Set Cursor in home position
   
   /*****Config Pins and define custom names of pins *****/
   //Inputs
@@ -73,13 +67,11 @@ void setup() {
 
 
 void loop() { 
-
-  
   
   //SELECT BUTTON REACTION
   //====================================================
     if (!digitalRead(SELECT_BUTTON)){
-
+      
       CursPlace = CursPlace + 1;
       while(!digitalRead(SELECT_BUTTON));
       if(CursPlace > DOW_ADR)CursPlace = Home;
@@ -167,10 +159,8 @@ void loop() {
          }
          //------------------------------------------------------
          
-       while(!digitalRead(DOWN_BUTTON));
-       delay(20);
-    
-    
+       while(!digitalRead(DOWN_BUTTON)); //Wait for relase the button
+       delay(20);//Debaunce relase
    }
  
    lcd.setCursor(0,0);
