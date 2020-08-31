@@ -69,7 +69,7 @@ void setup() {
 void loop() { 
   
   //SELECT BUTTON REACTION
-  //====================================================
+  //===========================================================================================================
     if (!digitalRead(SELECT_BUTTON)){
       
       CursPlace = CursPlace + 1;
@@ -79,7 +79,7 @@ void loop() {
   }
 
   //UP BUTTON REACTION
-  //====================================================
+  //===========================================================================================================
   if (!digitalRead(UP_BUTTON)){
     
          if(CursPlase == DAY_ADR){//Curssor is pointed on the Day
@@ -129,14 +129,23 @@ void loop() {
   }
 
   //DOWN BUTTON REACTION
-  //===================================================
+  //===========================================================================================================
   if (!digitalRead(DOWN_BUTTON)){
 
         if(CursPlace == HOUR_ADR){ //Curssor is pointed to Hour
           
           RTCC = rtc.getTime();
+          
           RTCC.hour--; //Decrase Hour
           if(RTCC.hour < 0)RTCC.hour = 23;//Check If Hour is reached 0 and turn back to 23 
+          
+          /* HERE IS SOME SUGGESTION MUST BE TEST
+          if(RTCC.hour == 0)RTCC.hour = 23;//Check If Hour is reached 0 and turn back to 23 
+          OR
+          if(!RTCC.hour) RTCC.hour = 23;//Check If Hour is reached 0 and turn back to 23 
+          else RTCC.hour--;
+          */
+          
           rtc.setTime(RTCC.hour, RTCC.min, RTCC.sec);               
          }
          //-----------------------------------------------------
