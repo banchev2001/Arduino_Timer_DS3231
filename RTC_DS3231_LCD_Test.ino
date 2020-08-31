@@ -81,8 +81,15 @@ void loop() {
   //UP BUTTON REACTION
   //====================================================
   if (!digitalRead(UP_BUTTON)){
-
-         if(CursPlace == HOUR_ADR){ //Curssor is pointed to Hour
+    
+         if(CursPlase == DAY_ADR){//Curssor is pointed on the Day
+         RTCC = rtc.getTime();
+         RTCC.date++;//Incrase day of month
+         if(RTCC.date > 31)RTCC.date = 0; //HERE WE NEED MORE VERIFICATIONS!!!
+         rtc.setDate(RTCC.date, RTCC.month, RTCC.year);
+         }
+         //-----------------------------------------------------
+          if(CursPlace == HOUR_ADR){ //Curssor is pointed to Hour
           
           RTCC = rtc.getTime();
           RTCC.hour++; //Incrase Hour
