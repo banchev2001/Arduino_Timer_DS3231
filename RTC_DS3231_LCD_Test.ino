@@ -33,7 +33,7 @@ DS3231 Library Document Web: http://www.rinkydinkelectronics.com/library.php?id=
   enum CursAddr {Home = 0, HOUR_ADR, MINUTES_ADR, SECONDS_ADR, 
                  DAY_ADR, MONTH_ADR, YEAR_ADR, DOW_ADR} CursPlace = Home;
                  
-  Time RTCC; //Class Varible contain all .hour .min .sec .date .mon .year .dow
+  Time RTCC; //Create object RTCC wich is Time class contain all .hour .min .sec .date .mon .year .dow
   /********************************************************************/
 
 
