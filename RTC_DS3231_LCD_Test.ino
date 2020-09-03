@@ -25,6 +25,10 @@ DS3231 Library Document Web: http://www.rinkydinkelectronics.com/library.php?id=
 #define TMR1_OUT 13 
 #define TMR2_OUT 14 //A0 pin
 
+//Define constant for logic control
+#define ON 1
+#define OFF 0
+
   DS3231  rtc(SDA, SCL);
   //Parameters: (rs, enable, d4, d5, d6, d7) 
   LiquidCrystal lcd(12, 11, 5, 4, 3, 2); // Creates an LCD object. 
@@ -32,7 +36,15 @@ DS3231 Library Document Web: http://www.rinkydinkelectronics.com/library.php?id=
   /****************** Global Variables ********************************/
   enum CursAddr {Home = 0, HOUR_ADR, MINUTES_ADR, SECONDS_ADR, 
                  DAY_ADR, MONTH_ADR, YEAR_ADR, DOW_ADR} CursPlace = Home;
-                 
+  
+  //Flag bits used by program
+  struct{ 
+    char CursorState :1; //flag bit used for control Cursor ON - OFF state
+  }FlagBits;
+ 
+  //here is some variable for curssor blink
+  //const int CursorBlinkRate = 100;
+    
   Time RTCC; //Create object RTCC wich is Time class contain all .hour .min .sec .date .mon .year .dow
   /********************************************************************/
 
