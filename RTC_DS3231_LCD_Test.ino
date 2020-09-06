@@ -36,18 +36,60 @@ DS3231 Library Document Web: http://www.rinkydinkelectronics.com/library.php?id=
   /****************** Global Variables ********************************/
   enum CursAddr {Home = 0, HOUR_ADR, MINUTES_ADR, SECONDS_ADR, 
                  DAY_ADR, MONTH_ADR, YEAR_ADR, DOW_ADR} CursPlace = Home;
-  
+  enum
   //Flag bits used by program
   struct{ 
     char CursorState :1; //flag bit used for control Cursor ON - OFF state
   }FlagBits;
  
   //here is some variable for curssor blink
-  //const int CursorBlinkRate = 100;
+  int CursorDelayCnt = 0;
     
   Time RTCC; //Create object RTCC wich is Time class contain all .hour .min .sec .date .mon .year .dow
   /********************************************************************/
 
+/*************************************************************************************/
+/*                                 Custom Function START                             */
+/*************************************************************************************/
+
+void MainDisplay(){
+
+
+   if (CursPlace == Home) RTCC = rtc.getTime();
+   
+   lcd.setCursor(0,0);
+   lcd.print("Time: ");
+   if (RTCC.hour < 10) lcd.print("0");
+   lcd.print(RTCC.hour); lcd.print(":");
+   if (RTCC.min < 10) lcd.print("0"); 
+   lcd.print(RTCC.min);  lcd.print(":");
+   if (RTCC.sec < 10) lcd.print("0"); 
+   lcd.print(RTCC.sec);
+
+   
+   lcd.setCursor(0,1);
+   lcd.print("Date: ");
+   if (RTCC.date < 10)lcd.print("0");
+   lcd.print(RTCC.date); lcd.print("/"); 
+   if (RTCC.mon < 10) lcd.print("0");
+   lcd.print(RTCC.mon);  lcd.print("/"); 
+   lcd.print(RTCC.year);
+   
+   //lcd.print(rtc.getDateStr(FORMAT_SHORT,FORMAT_LITTLEENDIAN,'/'));
+  
+   lcd.setCursor(0,2);
+   lcd.print("Day:  ");
+   lcd.print(rtc.getDOWStr(FORMAT_SHORT));
+  
+   lcd.setCursor(0,3);
+   lcd.print("Temp: ");
+   lcd.print(rtc.getTemp());
+   lcd.print(" C");
+  
+}
+/*************************************************************************************/
+/*                                 Custom Function END                             */
+/*************************************************************************************/
 
 
 void setup() { 
@@ -86,7 +128,14 @@ void loop() {
       
       CursPlace = CursPlace + 1;
       while(!digitalRead(SELECT_BUTTON));
-      if(CursPlace > DOW_ADR)CursPlace = Home;
+       
+        if(CursPlace > DOW_ADR){ //Write all RTCC Data and send it to DS3231
+            CursPlace = Home;
+            rtc.setTime(RTCC.hour, RTCC.min, RTCC.sec); 
+            rtc.setDate(RTCC.date, RTCC.mon, RTCC.year);
+            rtc.setDOW(RTCC.dow);              
+        }
+      
       delay(20);
   }
 
@@ -94,41 +143,45 @@ void loop() {
   //===========================================================================================================
   if (!digitalRead(UP_BUTTON)){
     
-         if(CursPlase == DAY_ADR){//Curssor is pointed on the Day
-         RTCC = rtc.getTime();
+         
+         
+         if(CursPlace == YEAR_ADR){//Curssor is pointed on the Month
+         RTCC.year++;//Incrase day of month
+         if(RTCC.year > 2099)RTCC.year = 2000; 
+         }
+         //-----------------------------------------------------
+         if(CursPlace == MONTH_ADR){//Curssor is pointed on the Month
+         RTCC.mon++;//Incrase day of month
+         if(RTCC.mon > 12)RTCC.mon = 0; //HERE WE NEED MORE VERIFICATIONS!!!
+         }
+         //-----------------------------------------------------
+         if(CursPlace == DAY_ADR){//Curssor is pointed on the Day
          RTCC.date++;//Incrase day of month
          if(RTCC.date > 31)RTCC.date = 0; //HERE WE NEED MORE VERIFICATIONS!!!
-         rtc.setDate(RTCC.date, RTCC.month, RTCC.year);
          }
          //-----------------------------------------------------
           if(CursPlace == HOUR_ADR){ //Curssor is pointed to Hour
-          
-          RTCC = rtc.getTime();
           RTCC.hour++; //Incrase Hour
           if(RTCC.hour > 23)RTCC.hour = 0;//Check If Hour is reached 23 and turn back to 0 
-          rtc.setTime(RTCC.hour, RTCC.min, RTCC.sec);               
+          //rtc.setTime(RTCC.hour, RTCC.min, RTCC.sec);               
          }
          //-----------------------------------------------------
 
          if(CursPlace == MINUTES_ADR){ //Curssor is pointed to Minutes
-          
-          RTCC = rtc.getTime();
           RTCC.min++; //Incrase Minutes
           if(RTCC.min > 59)RTCC.min = 0;//Check If Minutes is reached 59 and turn back to 0 
-          rtc.setTime(RTCC.hour, RTCC.min, RTCC.sec);               
+          //rtc.setTime(RTCC.hour, RTCC.min, RTCC.sec);               
          }
          //-----------------------------------------------------
 
          if(CursPlace == SECONDS_ADR){ //Curssor is pointed to Seconds
-          
-          RTCC = rtc.getTime();
-          rtc.setTime(RTCC.hour, RTCC.min, 0); //Zero seconds               
+          RTCC.sec++; //Incrase Minutes
+          if(RTCC.sec > 59)RTCC.sec = 0;//Check If Seconds is reached 59 and turn back to 0 
+          //rtc.setTime(RTCC.hour, RTCC.min, 0); //Zero seconds               
          }
          //-----------------------------------------------------
     
         if(CursPlace == DOW_ADR){ //Curssor is pointed to Day Of Week
-
-          RTCC = rtc.getTime();
           RTCC.dow++; //Incrase Day Of Week
           if(RTCC.dow > SUNDAY)RTCC.dow = MONDAY;//Check Day If is SunDay turn Back to Monday
           rtc.setDOW(RTCC.dow);//Write to back to DS3231          
@@ -138,49 +191,44 @@ void loop() {
          
        while(!digitalRead(UP_BUTTON));
        delay(20);
+       MainDisplay();
   }
 
   //DOWN BUTTON REACTION
   //===========================================================================================================
   if (!digitalRead(DOWN_BUTTON)){
-
-        if(CursPlace == HOUR_ADR){ //Curssor is pointed to Hour
-          
-          RTCC = rtc.getTime();
-          
-          RTCC.hour--; //Decrase Hour
-          if(RTCC.hour < 0)RTCC.hour = 23;//Check If Hour is reached 0 and turn back to 23 
-          
-          /* HERE IS SOME SUGGESTION MUST BE TEST
-          if(RTCC.hour == 0)RTCC.hour = 23;//Check If Hour is reached 0 and turn back to 23 
-          OR
+    
+         if(CursPlace == YEAR_ADR){ //Curssor is pointed to Year
+          if(RTCC.year == 2000) RTCC.year = 2099;//Check If Year is reached 2000 and turn back to 2099 
+          else RTCC.year--;//Decrase Month
+         }
+         //-----------------------------------------------------
+         if(CursPlace == MONTH_ADR){ //Curssor is pointed to Month
+          if(!RTCC.mon) RTCC.mon = 12;//Check If Month is reached 0 and turn back to 12 
+          else RTCC.mon--;//Decrase Month
+         }//HERE WE NEED MORE VERIFICATIONS!!!
+         //-----------------------------------------------------
+         if(CursPlace == DAY_ADR){ //Curssor is pointed to Day
+          if(!RTCC.date) RTCC.date = 31;//Check If Day is reached 0 and turn back to 31 
+          else RTCC.date--;//Decrase Day
+         }//HERE WE NEED MORE VERIFICATIONS!!!
+         //-----------------------------------------------------
+         if(CursPlace == HOUR_ADR){ //Curssor is pointed to Hour
           if(!RTCC.hour) RTCC.hour = 23;//Check If Hour is reached 0 and turn back to 23 
-          else RTCC.hour--;
-          */
-          
-          rtc.setTime(RTCC.hour, RTCC.min, RTCC.sec);               
+          else RTCC.hour--;//Decrase Hour
          }
          //-----------------------------------------------------
-
          if(CursPlace == MINUTES_ADR){ //Curssor is pointed to Minutes
-          
-          RTCC = rtc.getTime();
-          RTCC.min--; //Decrase Minutes
-          if(RTCC.min < 0)RTCC.min = 0;//Check If Minutes is reached 0 and turn back to 59 
-          rtc.setTime(RTCC.hour, RTCC.min, RTCC.sec);               
+          if(!RTCC.min)RTCC.min = 59;//Check If Minutes is reached 0 and turn back to 59 
+          else RTCC.min--; //Decrase Minutes            
          }
          //-----------------------------------------------------
-
          if(CursPlace == SECONDS_ADR){ //Curssor is pointed to Seconds
-          
-          RTCC = rtc.getTime();
-          rtc.setTime(RTCC.hour, RTCC.min, 0); //Zero seconds               
+          if(!RTCC.sec)RTCC.sec = 59;//Check If Seconds is reached 0 and turn back to 59 
+          else RTCC.sec--; //Decrase Seconds      
          }
          //-----------------------------------------------------
-
-        if(CursPlace == DOW_ADR){ //Curssor is pointed to Day Of Week
-
-          RTCC = rtc.getTime();
+         if(CursPlace == DOW_ADR){ //Curssor is pointed to Day Of Week
           RTCC.dow--; //Decrase Day Of Week
           if(RTCC.dow < MONDAY)RTCC.dow = SUNDAY; //Check Day If is Monday turn back to SunDay 
           rtc.setDOW(RTCC.dow);//Write to back to DS3231          
@@ -189,71 +237,57 @@ void loop() {
          
        while(!digitalRead(DOWN_BUTTON)); //Wait for relase the button
        delay(20);//Debaunce relase
+       MainDisplay();
    }
  
-   lcd.setCursor(0,0);
-   lcd.print("Time: ");
-   lcd.print(rtc.getTimeStr());
+  
    
-   lcd.setCursor(0,1);
-   lcd.print("Date: ");
-   lcd.print(rtc.getDateStr(FORMAT_SHORT,FORMAT_LITTLEENDIAN,'/'));
-  
-   lcd.setCursor(0,2);
-   lcd.print("Day:  ");
-   lcd.print(rtc.getDOWStr(FORMAT_SHORT));
-  
-   lcd.setCursor(0,3);
-   lcd.print("Temp: ");
-   lcd.print(rtc.getTemp());
-   lcd.print(" C");
 
+       
 
-   delay(90);
+  
    
        //Turn Off curssor when rotate all parameters
        if(CursPlace == Home){
-        lcd.noCursor();
+        lcd.noBlink();
+        MainDisplay(); //Update Main display      
+       }
+       
+       else{
+       lcd.blink();
        }
        
        //Place Curssor on the Time
        //--------------------------------------------
        if(CursPlace == HOUR_ADR){
         lcd.setCursor(7,0);
-        lcd.cursor();
        }
        if(CursPlace == MINUTES_ADR){
         lcd.setCursor(10,0);
-        lcd.cursor();
        }
        if(CursPlace == SECONDS_ADR){
         lcd.setCursor(13,0);
-        lcd.cursor();
        }
 
        //Place Curssor on the Date
        //--------------------------------------------
        if(CursPlace == DAY_ADR){
         lcd.setCursor(7,1);
-        lcd.cursor();
        }
        if(CursPlace == MONTH_ADR){
         lcd.setCursor(10,1);
-        lcd.cursor();
        }
        if(CursPlace == YEAR_ADR){
-        lcd.setCursor(13,1);
-        lcd.cursor();
+        lcd.setCursor(15,1);
        }
 
        //Place Curssor on the Day Of Week
        //-------------------------------------------
        if(CursPlace == DOW_ADR){
         lcd.setCursor(6,2);
-        lcd.cursor();
        }
        
  
-   delay(90);
-   lcd.noCursor(); 
+   delay(10);
+   
 }
