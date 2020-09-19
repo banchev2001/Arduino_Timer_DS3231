@@ -6,7 +6,7 @@
 /***************************** Public ***************************/
 char *WeekTimer::GetWeekPlanStr(){
 	
-	static char output[6] = "-------";
+	static char output[7] = "-------";
 	
 	
 	if(WeekPlan  & 0x80)output[6] = 'S'; //Test 7th bit of week plan if != 0 then set 6th char of output to S
@@ -24,6 +24,8 @@ char *WeekTimer::GetWeekPlanStr(){
 	if(WeekPlan  & 0x02)output[0] = 'M';
 	else output[0] = '-';
 	
+	output[7] = '\0';
+	
 	return (char*)&output; 
 	
 }
@@ -39,7 +41,17 @@ void WeekTimer::DisableWD(int8_t DOW){
 	WeekPlan &= ~(1UL << DOW); //Clear Bit
 }
 
-
+void WeekTimer::SetWeekPlanStr(char* WeekPlanStr){
+	
+	for (int i = 0; i<7; i++){
+		
+		if (WeekPlanStr[i] != '-') EnableWD(i+1);
+		
+	}
+	
+	
+	
+}
 
 int8_t WeekTimer::Check (int8_t DOW, int8_t currentHour, int8_t currentMinutes){
 	
