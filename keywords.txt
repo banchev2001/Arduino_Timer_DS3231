@@ -30,6 +30,7 @@ OffMinutes	KEYWORD2
 
 EnableWD	KEYWORD2
 DisableWD	KEYWORD2
+SetWeekPlanStr	KEYWORD2
 GetWeekPlanStr	KEYWORD2
 Check	KEYWORD2
 #=======================================================
