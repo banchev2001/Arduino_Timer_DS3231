@@ -33,4 +33,8 @@ DisableWD	KEYWORD2
 SetWeekPlanStr	KEYWORD2
 GetWeekPlanStr	KEYWORD2
 Check	KEYWORD2
+SetOnTime	KEYWORD2
+SetOffTime	KEYWORD2
+ValOnTime	KEYWORD2
+ValOffTime	KEYWORD2
 #=======================================================
