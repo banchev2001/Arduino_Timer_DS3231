@@ -6,7 +6,7 @@
 /***************************** Public ***************************/
 char *WeekTimer::GetWeekPlanStr(){
 	
-	static char output[7] = "-------";
+	char *output = "-------";
 	
 	
 	if(WeekPlan  & 0x80)output[6] = 'S'; //Test 7th bit of week plan if != 0 then set 6th char of output to S
@@ -24,9 +24,9 @@ char *WeekTimer::GetWeekPlanStr(){
 	if(WeekPlan  & 0x02)output[0] = 'M';
 	else output[0] = '-';
 	
-	output[7] = '\0';
+	//output[7] = '\0';
 	
-	return (char*)&output; 
+	return output; 
 	
 }
 
@@ -48,9 +48,7 @@ void WeekTimer::SetWeekPlanStr(char* WeekPlanStr){
 		if (WeekPlanStr[i] != '-') EnableWD(i+1);
 		
 	}
-	
-	
-	
+		
 }
 
 int8_t WeekTimer::Check (int8_t DOW, int8_t currentHour, int8_t currentMinutes){
@@ -59,7 +57,7 @@ int8_t WeekTimer::Check (int8_t DOW, int8_t currentHour, int8_t currentMinutes){
 	if((WeekPlan  & 0x02) && (DOW == MONDAY)){ //IS MONDAY
 	
 		if ((_CombTime (currentHour, currentMinutes) >= _CombTime (OnHour, OnMinutes)) 
-		&& (_CombTime (currentHour, currentMinutes) <= _CombTime (OffHour, OffMinutes))) return 1;
+		&& (_CombTime (currentHour, currentMinutes) < _CombTime (OffHour, OffMinutes))) return 1;
 	
 		else  return 0;
 	}
@@ -67,7 +65,7 @@ int8_t WeekTimer::Check (int8_t DOW, int8_t currentHour, int8_t currentMinutes){
 	if((WeekPlan  & 0x04) && (DOW == TUESDAY)){ //IS TUESDAY
 	
 		if ((_CombTime (currentHour, currentMinutes) >= _CombTime (OnHour, OnMinutes)) 
-		&& (_CombTime (currentHour, currentMinutes) <= _CombTime (OffHour, OffMinutes))) return 1;
+		&& (_CombTime (currentHour, currentMinutes) < _CombTime (OffHour, OffMinutes))) return 1;
 	
 		else  return 0;
 	}
@@ -75,7 +73,7 @@ int8_t WeekTimer::Check (int8_t DOW, int8_t currentHour, int8_t currentMinutes){
 	if((WeekPlan  & 0x08) && (DOW == WEDNESDAY)){ //IS WEDNESDAY
 	
 		if ((_CombTime (currentHour, currentMinutes) >= _CombTime (OnHour, OnMinutes)) 
-		&& (_CombTime (currentHour, currentMinutes) <= _CombTime (OffHour, OffMinutes))) return 1;
+		&& (_CombTime (currentHour, currentMinutes) < _CombTime (OffHour, OffMinutes))) return 1;
 	
 		else  return 0;
 	}
@@ -83,7 +81,7 @@ int8_t WeekTimer::Check (int8_t DOW, int8_t currentHour, int8_t currentMinutes){
 	if((WeekPlan  & 0x10) && (DOW == THURSDAY)){ //IS THURSDAY
 	
 		if ((_CombTime (currentHour, currentMinutes) >= _CombTime (OnHour, OnMinutes)) 
-		&& (_CombTime (currentHour, currentMinutes) <= _CombTime (OffHour, OffMinutes))) return 1;
+		&& (_CombTime (currentHour, currentMinutes) < _CombTime (OffHour, OffMinutes))) return 1;
 	
 		else  return 0;
 	}
@@ -91,7 +89,7 @@ int8_t WeekTimer::Check (int8_t DOW, int8_t currentHour, int8_t currentMinutes){
 	if((WeekPlan  & 0x20) && (DOW == FRIDAY)){ //IS FRIDAY
 	
 		if ((_CombTime (currentHour, currentMinutes) >= _CombTime (OnHour, OnMinutes)) 
-		&& (_CombTime (currentHour, currentMinutes) <= _CombTime (OffHour, OffMinutes))) return 1;
+		&& (_CombTime (currentHour, currentMinutes) < _CombTime (OffHour, OffMinutes))) return 1;
 	
 		else  return 0;
 	}
@@ -99,7 +97,7 @@ int8_t WeekTimer::Check (int8_t DOW, int8_t currentHour, int8_t currentMinutes){
 	if((WeekPlan  & 0x40) && (DOW == SATURDAY)){ //IS SATURDAY
 	
 		if ((_CombTime (currentHour, currentMinutes) >= _CombTime (OnHour, OnMinutes)) 
-		&& (_CombTime (currentHour, currentMinutes) <= _CombTime (OffHour, OffMinutes))) return 1;
+		&& (_CombTime (currentHour, currentMinutes) < _CombTime (OffHour, OffMinutes))) return 1;
 	
 		else  return 0;
 	}
@@ -107,7 +105,7 @@ int8_t WeekTimer::Check (int8_t DOW, int8_t currentHour, int8_t currentMinutes){
 	if((WeekPlan  & 0x80) && (DOW == SUNDAY)){ //IS SUNDAY
 	
 		if ((_CombTime (currentHour, currentMinutes) >= _CombTime (OnHour, OnMinutes)) 
-		&& (_CombTime (currentHour, currentMinutes) <= _CombTime (OffHour, OffMinutes))) return 1;
+		&& (_CombTime (currentHour, currentMinutes) < _CombTime (OffHour, OffMinutes))) return 1;
 	
 		else  return 0;
 	}
@@ -116,11 +114,19 @@ int8_t WeekTimer::Check (int8_t DOW, int8_t currentHour, int8_t currentMinutes){
 		       
 }
 
+void WeekTimer::SetOnTime(int8_t Hr, int8_t Min){
+	OnHour = Hr;
+	OnMinutes = Min;
+} 
+void WeekTimer::SetOffTime(int8_t Hr, int8_t Min){
+	OffHour = Hr;
+	OffMinutes = Min;	
+}
 
 /***************************** Private ***************************/
 
  int16_t WeekTimer::_CombTime (int8_t Hr, int8_t Min){
 	 
-	 return ( Hr << 8 | Min);
+	 return ( Hr << 8 | Min); //Merage bytes
 	 
  }
