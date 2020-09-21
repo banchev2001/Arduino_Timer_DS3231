@@ -1,4 +1,5 @@
 
+
 #include "Arduino.h"
 #include "WeekTimer.h"
 #include "DS3231.h"
@@ -6,7 +7,7 @@
 /***************************** Public ***************************/
 char *WeekTimer::GetWeekPlanStr(){
 	
-	char *output = "-------";
+	static char output[] = "-------";
 	
 	
 	if(WeekPlan  & 0x80)output[6] = 'S'; //Test 7th bit of week plan if != 0 then set 6th char of output to S
@@ -26,7 +27,7 @@ char *WeekTimer::GetWeekPlanStr(){
 	
 	//output[7] = '\0';
 	
-	return output; 
+	return (char*)&output; 
 	
 }
 
