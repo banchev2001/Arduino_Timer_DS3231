@@ -15,6 +15,7 @@ DS3231 Library Document Web: http://www.rinkydinkelectronics.com/library.php?id=
 */
 #include <DS3231.h>
 #include <LiquidCrystal.h> // includes the LiquidCrystal Library 
+#include <WeekTimer.h> //My custom library for week timer functions
 
 //Define custom name of Buttons
 #define DOWN_BUTTON 10
@@ -22,79 +23,68 @@ DS3231 Library Document Web: http://www.rinkydinkelectronics.com/library.php?id=
 #define SELECT_BUTTON 8
 
 //Define custom name of Outputs
-#define TMR1_OUT 13 
-#define TMR2_OUT 14 //A0 pin
+#define TMR1_OUT 14 //A0 pin
+#define TMR2_OUT 15 //A1 pin
 
 //Define constant for logic control
 #define ON 1
 #define OFF 0
 
-  DS3231  rtc(SDA, SCL);
+/*************************Inicialazing Objects ************************/
+  Time arduTime; //Create object arduTime wich save time in arduino
+  DS3231  dsTime(SDA, SCL); //Create object wich 
   //Parameters: (rs, enable, d4, d5, d6, d7) 
   LiquidCrystal lcd(12, 11, 5, 4, 3, 2); // Creates an LCD object. 
+  WeekTimer WT[3][4];
+ /*********************************************************************/
+  
 
   /****************** Global Variables ********************************/
+  //
   enum CursAddr {Home = 0, HOUR_ADR, MINUTES_ADR, SECONDS_ADR, 
-                 DAY_ADR, MONTH_ADR, YEAR_ADR, DOW_ADR} CursPlace = Home;
-  enum
-  //Flag bits used by program
-  struct{ 
-    char CursorState :1; //flag bit used for control Cursor ON - OFF state
-  }FlagBits;
- 
-  //here is some variable for curssor blink
-  int CursorDelayCnt = 0;
-    
-  Time RTCC; //Create object RTCC wich is Time class contain all .hour .min .sec .date .mon .year .dow
+                 DAY_ADR, MONTH_ADR, YEAR_ADR, DOW_ADR, MON_ADR,
+                 TUE_ADR, WED_ADR, THU_ADR, FRI_ADR, SAT_ADR, SUN_ADR,
+                 ONH_ADR, ONM_ADR, OFFH_ADR, OFFM_ADR} CursPlace = Home;
+  //               
+  enum Display {MAIN_DISP = 0, TMR1_L1, TMR1_L2, TMR1_L3, TMR2_L1, TMR2_L2, 
+                                            TMR2_L3} DisplayPage = MAIN_DISP;
+  
   /********************************************************************/
 
-/*************************************************************************************/
-/*                                 Custom Function START                             */
-/*************************************************************************************/
-
-void MainDisplay(){
-
-
-   if (CursPlace == Home) RTCC = rtc.getTime();
-   
-   lcd.setCursor(0,0);
-   lcd.print("Time: ");
-   if (RTCC.hour < 10) lcd.print("0");
-   lcd.print(RTCC.hour); lcd.print(":");
-   if (RTCC.min < 10) lcd.print("0"); 
-   lcd.print(RTCC.min);  lcd.print(":");
-   if (RTCC.sec < 10) lcd.print("0"); 
-   lcd.print(RTCC.sec);
-
-   
-   lcd.setCursor(0,1);
-   lcd.print("Date: ");
-   if (RTCC.date < 10)lcd.print("0");
-   lcd.print(RTCC.date); lcd.print("/"); 
-   if (RTCC.mon < 10) lcd.print("0");
-   lcd.print(RTCC.mon);  lcd.print("/"); 
-   lcd.print(RTCC.year);
-   
-   //lcd.print(rtc.getDateStr(FORMAT_SHORT,FORMAT_LITTLEENDIAN,'/'));
   
-   lcd.setCursor(0,2);
-   lcd.print("Day:  ");
-   lcd.print(rtc.getDOWStr(FORMAT_SHORT));
-  
-   lcd.setCursor(0,3);
-   lcd.print("Temp: ");
-   lcd.print(rtc.getTemp());
-   lcd.print(" C");
-  
-}
-/*************************************************************************************/
-/*                                 Custom Function END                             */
-/*************************************************************************************/
+
 
 
 void setup() { 
 
+  /************************Initial Timers**********************/
+  WT[0][0].SetWeekPlanStr("MTWTFSS");//TMR1 lyer 1 
+  WT[0][0].SetOnTime(18,30);
+  WT[0][0].SetOffTime(22,00);
   
+  WT[0][1].SetWeekPlanStr("-------");//TMR1 lyer 2 
+  WT[0][1].SetOnTime(0,00);
+  WT[0][1].SetOffTime(23,59);
+
+  WT[0][2].SetWeekPlanStr("-----SS");//TMR1 lyer 3 
+  WT[0][2].SetOnTime(12,30);
+  WT[0][2].SetOffTime(14,35);
+
+  WT[1][0].SetWeekPlanStr("-------");//TMR2 lyer 1 
+  WT[1][0].SetOnTime(9,00);
+  WT[1][0].SetOffTime(10,45);
+  
+  WT[1][1].SetWeekPlanStr("-------");//TMR2 lyer 2 
+  WT[1][1].SetOnTime(11,00);
+  WT[1][1].SetOffTime(12,45);
+
+  WT[1][2].SetWeekPlanStr("MTWTFSS");//TMR2 lyer 3 
+  WT[1][2].SetOnTime(20,00);
+  WT[1][2].SetOffTime(22,30);
+  
+  /********************** EOF Initial Timers ******************/
+
+   
   CursPlace = Home; //Set Cursor in home position
   
   /*****Config Pins and define custom names of pins *****/
@@ -108,14 +98,14 @@ void setup() {
   pinMode(TMR2_OUT, OUTPUT);
   /******************************************************/
   
-  rtc.begin(); // Initialize the rtc object
+  dsTime.begin(); // Initialize the dsTime object
   lcd.begin(20,4); // Initializes the interface to the LCD screen, and specifies the dimensions (width and height) of the display } 
 
   // Aproximate 8 seconds to upload scatch
   // The following lines can be uncommented to set the date and time
-  //rtc.setDOW(SUNDAY);     // Set Day-of-Week to SUNDAY
-  //rtc.setTime(20, 4, 0);     // Set the time to 12:00:00 (24hr format)
-  //rtc.setDate(29, 8, 2020);   // Set the date to January 1st, 2014
+  //dsTime.setDOW(SUNDAY);     // Set Day-of-Week to SUNDAY
+  //dsTime.setTime(20, 4, 0);     // Set the time to 12:00:00 (24hr format)
+  //dsTime.setDate(29, 8, 2020);   // Set the date to January 1st, 2014
 
 }
 
@@ -125,132 +115,187 @@ void loop() {
   //SELECT BUTTON REACTION
   //===========================================================================================================
     if (!digitalRead(SELECT_BUTTON)){
+
+      if(DisplayPage == MAIN_DISP){ 
+          CursPlace = CursPlace + 1;
+          while(!digitalRead(SELECT_BUTTON));
+           
+            if(CursPlace > DOW_ADR){ //Write all arduTime Data and send it to DS3231
+                CursPlace = Home;
+                dsTime.setTime(arduTime.hour, arduTime.min, arduTime.sec); 
+                dsTime.setDate(arduTime.date, arduTime.mon, arduTime.year);
+                dsTime.setDOW();  //This way automaticly correct Day of week            
+            }
+      }
       
-      CursPlace = CursPlace + 1;
-      while(!digitalRead(SELECT_BUTTON));
-       
-        if(CursPlace > DOW_ADR){ //Write all RTCC Data and send it to DS3231
-            CursPlace = Home;
-            rtc.setTime(RTCC.hour, RTCC.min, RTCC.sec); 
-            rtc.setDate(RTCC.date, RTCC.mon, RTCC.year);
-            rtc.setDOW(RTCC.dow);              
-        }
-      
-      delay(20);
+      else{ 
+          if(CursPlace < DOW_ADR) CursPlace = DOW_ADR;
+          CursPlace = CursPlace + 1;
+          while(!digitalRead(SELECT_BUTTON));
+            
+            if(CursPlace > OFFM_ADR){ //Write Configured Settings in EEPROM
+                CursPlace = Home;
+            
+            }
+      }
   }
 
   //UP BUTTON REACTION
   //===========================================================================================================
   if (!digitalRead(UP_BUTTON)){
-    
+
+      if(CursPlace == Home){
+        DisplayPage = DisplayPage + 1;  
+        if(DisplayPage > TMR2_L3) DisplayPage = MAIN_DISP;
+        while(!digitalRead(UP_BUTTON));
+        lcd.clear();
+      }
          
-         
+      if (DisplayPage == MAIN_DISP) {
+             
          if(CursPlace == YEAR_ADR){//Curssor is pointed on the Month
-         RTCC.year++;//Incrase day of month
-         if(RTCC.year > 2099)RTCC.year = 2000; 
+         arduTime.year++;//Incrase day of month
+         if(arduTime.year > 2099)arduTime.year = 2000;
          }
          //-----------------------------------------------------
          if(CursPlace == MONTH_ADR){//Curssor is pointed on the Month
-         RTCC.mon++;//Incrase day of month
-         if(RTCC.mon > 12)RTCC.mon = 0; //HERE WE NEED MORE VERIFICATIONS!!!
+         arduTime.mon++;//Incrase day of month
+         if(arduTime.mon > 12)arduTime.mon = 0; //HERE WE NEED MORE VERIFICATIONS!!!
          }
          //-----------------------------------------------------
          if(CursPlace == DAY_ADR){//Curssor is pointed on the Day
-         RTCC.date++;//Incrase day of month
-         if(RTCC.date > 31)RTCC.date = 0; //HERE WE NEED MORE VERIFICATIONS!!!
+         arduTime.date++;//Incrase day of month
+         if(arduTime.date > 31)arduTime.date = 0; //HERE WE NEED MORE VERIFICATIONS!!!
          }
          //-----------------------------------------------------
           if(CursPlace == HOUR_ADR){ //Curssor is pointed to Hour
-          RTCC.hour++; //Incrase Hour
-          if(RTCC.hour > 23)RTCC.hour = 0;//Check If Hour is reached 23 and turn back to 0 
-          //rtc.setTime(RTCC.hour, RTCC.min, RTCC.sec);               
+          arduTime.hour++; //Incrase Hour
+          if(arduTime.hour > 23)arduTime.hour = 0;//Check If Hour is reached 23 and turn back to 0 
          }
          //-----------------------------------------------------
 
          if(CursPlace == MINUTES_ADR){ //Curssor is pointed to Minutes
-          RTCC.min++; //Incrase Minutes
-          if(RTCC.min > 59)RTCC.min = 0;//Check If Minutes is reached 59 and turn back to 0 
-          //rtc.setTime(RTCC.hour, RTCC.min, RTCC.sec);               
+          arduTime.min++; //Incrase Minutes
+          if(arduTime.min > 59)arduTime.min = 0;//Check If Minutes is reached 59 and turn back to 0 
          }
          //-----------------------------------------------------
 
          if(CursPlace == SECONDS_ADR){ //Curssor is pointed to Seconds
-          RTCC.sec++; //Incrase Minutes
-          if(RTCC.sec > 59)RTCC.sec = 0;//Check If Seconds is reached 59 and turn back to 0 
-          //rtc.setTime(RTCC.hour, RTCC.min, 0); //Zero seconds               
+          arduTime.sec++; //Incrase Minutes
+          if(arduTime.sec > 59)arduTime.sec = 0;//Check If Seconds is reached 59 and turn back to 0 
          }
          //-----------------------------------------------------
     
         if(CursPlace == DOW_ADR){ //Curssor is pointed to Day Of Week
-          RTCC.dow++; //Incrase Day Of Week
-          if(RTCC.dow > SUNDAY)RTCC.dow = MONDAY;//Check Day If is SunDay turn Back to Monday
-          rtc.setDOW(RTCC.dow);//Write to back to DS3231          
+          arduTime.dow++; //Incrase Day Of Week
+          if(arduTime.dow > SUNDAY)arduTime.dow = MONDAY;//Check Day If is SunDay turn Back to Monday
+          dsTime.setDOW(arduTime.dow);//Write to back to DS3231          
          }
          //-----------------------------------------------------
 
-         
        while(!digitalRead(UP_BUTTON));
-       delay(20);
        MainDisplay();
+
+      }
+      if (DisplayPage == TMR1_L1) {
+       WeekT_Display(1,1); 
+      }
+      if (DisplayPage == TMR1_L2) {
+       WeekT_Display(1,2); 
+      }
+      if (DisplayPage == TMR1_L3) {
+         WeekT_Display(1,3); 
+      }
+      if (DisplayPage == TMR2_L1) {
+         WeekT_Display(2,1); 
+      }
+      if (DisplayPage == TMR2_L2) {
+         WeekT_Display(2,2); 
+      }
+      if (DisplayPage == TMR2_L3) {
+         WeekT_Display(2,3); 
+      }
   }
 
   //DOWN BUTTON REACTION
   //===========================================================================================================
   if (!digitalRead(DOWN_BUTTON)){
-    
+     
+     if(CursPlace == Home){
+        if(DisplayPage == MAIN_DISP) DisplayPage = TMR2_L3;
+        else DisplayPage = DisplayPage - 1;
+        while(!digitalRead(DOWN_BUTTON));
+        lcd.clear();
+      }
+    if (DisplayPage == MAIN_DISP) {
+      
          if(CursPlace == YEAR_ADR){ //Curssor is pointed to Year
-          if(RTCC.year == 2000) RTCC.year = 2099;//Check If Year is reached 2000 and turn back to 2099 
-          else RTCC.year--;//Decrase Month
+          if(arduTime.year == 2000) arduTime.year = 2099;//Check If Year is reached 2000 and turn back to 2099 
+          else arduTime.year--;//Decrase Month
          }
          //-----------------------------------------------------
          if(CursPlace == MONTH_ADR){ //Curssor is pointed to Month
-          if(!RTCC.mon) RTCC.mon = 12;//Check If Month is reached 0 and turn back to 12 
-          else RTCC.mon--;//Decrase Month
+          if(!arduTime.mon) arduTime.mon = 12;//Check If Month is reached 0 and turn back to 12 
+          else arduTime.mon--;//Decrase Month
          }//HERE WE NEED MORE VERIFICATIONS!!!
          //-----------------------------------------------------
          if(CursPlace == DAY_ADR){ //Curssor is pointed to Day
-          if(!RTCC.date) RTCC.date = 31;//Check If Day is reached 0 and turn back to 31 
-          else RTCC.date--;//Decrase Day
+          if(!arduTime.date) arduTime.date = 31;//Check If Day is reached 0 and turn back to 31 
+          else arduTime.date--;//Decrase Day
          }//HERE WE NEED MORE VERIFICATIONS!!!
          //-----------------------------------------------------
          if(CursPlace == HOUR_ADR){ //Curssor is pointed to Hour
-          if(!RTCC.hour) RTCC.hour = 23;//Check If Hour is reached 0 and turn back to 23 
-          else RTCC.hour--;//Decrase Hour
+          if(!arduTime.hour) arduTime.hour = 23;//Check If Hour is reached 0 and turn back to 23 
+          else arduTime.hour--;//Decrase Hour
          }
          //-----------------------------------------------------
          if(CursPlace == MINUTES_ADR){ //Curssor is pointed to Minutes
-          if(!RTCC.min)RTCC.min = 59;//Check If Minutes is reached 0 and turn back to 59 
-          else RTCC.min--; //Decrase Minutes            
+          if(!arduTime.min)arduTime.min = 59;//Check If Minutes is reached 0 and turn back to 59 
+          else arduTime.min--; //Decrase Minutes            
          }
          //-----------------------------------------------------
          if(CursPlace == SECONDS_ADR){ //Curssor is pointed to Seconds
-          if(!RTCC.sec)RTCC.sec = 59;//Check If Seconds is reached 0 and turn back to 59 
-          else RTCC.sec--; //Decrase Seconds      
+          if(!arduTime.sec)arduTime.sec = 59;//Check If Seconds is reached 0 and turn back to 59 
+          else arduTime.sec--; //Decrase Seconds      
          }
          //-----------------------------------------------------
          if(CursPlace == DOW_ADR){ //Curssor is pointed to Day Of Week
-          RTCC.dow--; //Decrase Day Of Week
-          if(RTCC.dow < MONDAY)RTCC.dow = SUNDAY; //Check Day If is Monday turn back to SunDay 
-          rtc.setDOW(RTCC.dow);//Write to back to DS3231          
+          arduTime.dow--; //Decrase Day Of Week
+          if(arduTime.dow < MONDAY)arduTime.dow = SUNDAY; //Check Day If is Monday turn back to SunDay 
+          dsTime.setDOW(arduTime.dow);//Write to back to DS3231          
          }
          //------------------------------------------------------
          
        while(!digitalRead(DOWN_BUTTON)); //Wait for relase the button
        delay(20);//Debaunce relase
        MainDisplay();
+     }
+    if (DisplayPage == TMR1_L1) {
+       WeekT_Display(1,1); 
+    }
+    if (DisplayPage == TMR1_L2) {
+       WeekT_Display(1,2); 
+    }
+    if (DisplayPage == TMR1_L3) {
+       WeekT_Display(1,3); 
+    }
+    if (DisplayPage == TMR2_L1) {
+       WeekT_Display(2,1); 
+    }
+    if (DisplayPage == TMR2_L2) {
+       WeekT_Display(2,2); 
+    }
+    if (DisplayPage == TMR2_L3) {
+       WeekT_Display(2,3); 
+    }
    }
  
   
-   
-
-       
-
-  
-   
+      
        //Turn Off curssor when rotate all parameters
        if(CursPlace == Home){
         lcd.noBlink();
-        MainDisplay(); //Update Main display      
+        if(DisplayPage == MAIN_DISP) MainDisplay(); //Update Main display      
        }
        
        else{
@@ -286,8 +331,184 @@ void loop() {
        if(CursPlace == DOW_ADR){
         lcd.setCursor(6,2);
        }
+
+       //Place Curssor on the Monday
+       //-------------------------------------------
+       if(CursPlace == MON_ADR){
+        lcd.setCursor(6,1);
+       }
+
+       //Place Curssor on the Tuesday
+       //-------------------------------------------
+       if(CursPlace == TUE_ADR){
+        lcd.setCursor(7,1);
+       }
+
+       //Place Curssor on the Wednesday
+       //-------------------------------------------
+       if(CursPlace == WED_ADR){
+        lcd.setCursor(8,1);
+       }
+
+       //Place Curssor on the Thursday
+       //-------------------------------------------
+       if(CursPlace == THU_ADR){
+        lcd.setCursor(9,1);
+       }
+
+       //Place Curssor on the Friday
+       //-------------------------------------------
+       if(CursPlace == FRI_ADR){
+        lcd.setCursor(10,1);
+       }
+
+       //Place Curssor on the Saturday
+       //-------------------------------------------
+       if(CursPlace == SAT_ADR){
+        lcd.setCursor(11,1);
+       }
+
+       //Place Curssor on the Saturday
+       //-------------------------------------------
+       if(CursPlace == SUN_ADR){
+        lcd.setCursor(12,1);
+       }
+
+       //Place Curssor on the On Hour parameter
+       //-------------------------------------------
+       if(CursPlace == ONH_ADR){
+        lcd.setCursor(6,2);
+       }
+
+       //Place Curssor on the On Minutes parameter
+       //-------------------------------------------
+       if(CursPlace == ONM_ADR){
+        lcd.setCursor(9,2);
+       }
+
+       //Place Curssor on the Off Hour parameter
+       //-------------------------------------------
+       if(CursPlace == OFFH_ADR){
+        lcd.setCursor(6,3);
+       }
+
+       //Place Curssor on the Off Minutes parameter
+       //-------------------------------------------
+       if(CursPlace == OFFM_ADR){
+        lcd.setCursor(9,3);
+       }
        
- 
-   delay(10);
+   //Here place code for checking some of timers Out
+   //==================================================================
+   arduTime = dsTime.getTime(); //Get current time from DS3231
    
+   if(WT[0][0].Check(arduTime.dow, arduTime.hour, arduTime.min)||
+      WT[0][1].Check(arduTime.dow, arduTime.hour, arduTime.min)||
+      WT[0][2].Check(arduTime.dow, arduTime.hour, arduTime.min))
+   
+            digitalWrite(TMR1_OUT, HIGH);
+    else
+            digitalWrite(TMR1_OUT, LOW);
+
+    if(WT[1][0].Check(arduTime.dow, arduTime.hour, arduTime.min)||
+       WT[1][1].Check(arduTime.dow, arduTime.hour, arduTime.min)||
+       WT[1][2].Check(arduTime.dow, arduTime.hour, arduTime.min))
+   
+            digitalWrite(TMR2_OUT, HIGH);
+    else
+            digitalWrite(TMR2_OUT, LOW);
+   
+   //==================================================================
+   //End of code checking timers
+   
+   
+ 
+   //delay(10);
+   
+}//End of Main Loop bracket
+/*************************************************************************************/
+/*                                 END OF MAIN LOOP                                  */
+/*************************************************************************************/
+
+
+
+/*************************************************************************************/
+/*                                 Custom Function START                             */
+/*************************************************************************************/
+
+  
+void WeekT_Display(uint8_t Timer, uint8_t TimerLyer){
+  
+  lcd.setCursor(0,0);
+  lcd.print("Timer: ");
+  lcd.print(Timer);
+  lcd.print(" Lyer: ");
+  lcd.print(TimerLyer);
+
+  lcd.setCursor(0,1);
+  lcd.print("Days: ");
+  lcd.print(WT[Timer-1][TimerLyer-1].GetWeekPlanStr());
+
+  lcd.setCursor(0,2);
+  lcd.print("On:  ");
+  if(WT[Timer-1][TimerLyer-1].OnHour<10)
+  lcd.print("0");
+  lcd.print(WT[Timer-1][TimerLyer-1].OnHour, DEC);
+  lcd.print(":");
+  if(WT[Timer-1][TimerLyer-1].OnMinutes<10)
+  lcd.print("0");
+  lcd.print(WT[Timer-1][TimerLyer-1].OnMinutes, DEC);
+  
+  lcd.setCursor(0,3);
+  lcd.print("Off: ");
+  if(WT[Timer-1][TimerLyer-1].OffHour<10)
+  lcd.print("0");
+  lcd.print(WT[Timer-1][TimerLyer-1].OffHour, DEC);
+  lcd.print(":");
+  if(WT[Timer-1][TimerLyer-1].OffMinutes<10)
+  lcd.print("0");
+  lcd.print(WT[Timer-1][TimerLyer-1].OffMinutes, DEC);
+  
 }
+
+void MainDisplay(){
+
+
+   if (CursPlace == Home) arduTime = dsTime.getTime();
+   
+   lcd.setCursor(0,0);
+   lcd.print("Time: ");
+   if (arduTime.hour < 10) lcd.print("0");
+   lcd.print(arduTime.hour); lcd.print(":");
+   if (arduTime.min < 10) lcd.print("0"); 
+   lcd.print(arduTime.min);  lcd.print(":");
+   if (arduTime.sec < 10) lcd.print("0"); 
+   lcd.print(arduTime.sec);
+
+   
+   lcd.setCursor(0,1);
+   lcd.print("Date: ");
+   if (arduTime.date < 10)lcd.print("0");
+   lcd.print(arduTime.date); lcd.print("/"); 
+   if (arduTime.mon < 10) lcd.print("0");
+   lcd.print(arduTime.mon);  lcd.print("/"); 
+   lcd.print(arduTime.year);
+   
+   //lcd.print(dsTime.getDateStr(FORMAT_SHORT,FORMAT_LITTLEENDIAN,'/'));
+
+  
+   
+   lcd.setCursor(0,2);
+   lcd.print("Day:  ");
+   lcd.print(dsTime.getDOWStr(/*FORMAT_SHORT*/));
+   lcd.print("    ");
+   
+   lcd.setCursor(0,3);
+   lcd.print("Temp: ");
+   lcd.print(dsTime.getTemp());
+   lcd.print(" C");
+  
+}
+/*************************************************************************************/
+/*                                 Custom Function END                             */
+/*************************************************************************************/
