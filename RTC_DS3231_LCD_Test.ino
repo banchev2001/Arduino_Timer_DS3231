@@ -62,23 +62,23 @@ void setup() {
   WT[0][0].SetOnTime(18,30);
   WT[0][0].SetOffTime(22,00);
   
-  WT[0][1].SetWeekPlanStr("-------");//TMR1 lyer 2 
-  WT[0][1].SetOnTime(0,00);
-  WT[0][1].SetOffTime(23,59);
+  WT[0][1].SetWeekPlanStr("-----SS");//TMR1 lyer 2 
+  WT[0][1].SetOnTime(12,30);
+  WT[0][1].SetOffTime(14,35);
 
-  WT[0][2].SetWeekPlanStr("-----SS");//TMR1 lyer 3 
+  WT[0][2].SetWeekPlanStr("-------");//TMR1 lyer 3 
   WT[0][2].SetOnTime(12,30);
   WT[0][2].SetOffTime(14,35);
 
-  WT[1][0].SetWeekPlanStr("-------");//TMR2 lyer 1 
-  WT[1][0].SetOnTime(9,00);
-  WT[1][0].SetOffTime(10,45);
+  WT[1][0].SetWeekPlanStr("MTWTFSS");//TMR2 lyer 1 
+  WT[1][0].SetOnTime(20,00);
+  WT[1][0].SetOffTime(22,30);
   
   WT[1][1].SetWeekPlanStr("-------");//TMR2 lyer 2 
   WT[1][1].SetOnTime(11,00);
   WT[1][1].SetOffTime(12,45);
 
-  WT[1][2].SetWeekPlanStr("MTWTFSS");//TMR2 lyer 3 
+  WT[1][2].SetWeekPlanStr("-------");//TMR2 lyer 3 
   WT[1][2].SetOnTime(20,00);
   WT[1][2].SetOffTime(22,30);
   
@@ -400,7 +400,7 @@ void loop() {
        
    //Here place code for checking some of timers Out
    //==================================================================
-   arduTime = dsTime.getTime(); //Get current time from DS3231
+   if(CursPlace == Home)arduTime = dsTime.getTime(); //Get current time from DS3231
    
    if(WT[0][0].Check(arduTime.dow, arduTime.hour, arduTime.min)||
       WT[0][1].Check(arduTime.dow, arduTime.hour, arduTime.min)||
@@ -423,7 +423,7 @@ void loop() {
    
    
  
-   //delay(10);
+   //delay(200);
    
 }//End of Main Loop bracket
 /*************************************************************************************/
