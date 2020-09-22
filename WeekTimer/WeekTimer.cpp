@@ -1,5 +1,3 @@
-
-
 #include "Arduino.h"
 #include "WeekTimer.h"
 #include "DS3231.h"
