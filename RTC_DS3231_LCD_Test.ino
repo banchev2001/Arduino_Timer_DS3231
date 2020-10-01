@@ -13,6 +13,7 @@ DS3231 Library Document Web: http://www.rinkydinkelectronics.com/library.php?id=
 * DS3231 Library made by Henning Karlsen which can be found and downloaded from his website, www.rinkydinkelectronics.com.
 *
 */
+#include <Arduino.h>
 #include <DS3231.h>
 #include <LiquidCrystal.h> // includes the LiquidCrystal Library 
 #include <WeekTimer.h> //My custom library for week timer functions
@@ -117,7 +118,7 @@ void loop() {
     if (!digitalRead(SELECT_BUTTON)){
 
       if(DisplayPage == MAIN_DISP){ 
-          CursPlace = CursPlace + 1;
+          CursPlace = CursPlace + 1; //Here read more about cast operator
           while(!digitalRead(SELECT_BUTTON));
            
             if(CursPlace > DOW_ADR){ //Write all arduTime Data and send it to DS3231
@@ -145,10 +146,10 @@ void loop() {
   if (!digitalRead(UP_BUTTON)){
 
       if(CursPlace == Home){
-        DisplayPage = DisplayPage + 1;  
-        if(DisplayPage > TMR2_L3) DisplayPage = MAIN_DISP;
-        while(!digitalRead(UP_BUTTON));
+        if(DisplayPage == MAIN_DISP) DisplayPage = TMR2_L3;
+        else DisplayPage = DisplayPage - 1;
         lcd.clear();
+        
       }
          
       if (DisplayPage == MAIN_DISP) {
@@ -198,23 +199,30 @@ void loop() {
 
       }
       if (DisplayPage == TMR1_L1) {
-       WeekT_Display(1,1); 
+        TmrUpBut(1, 1);//Control Sub routine
+        WeekT_Display(1,1);//Display Update subroutine
       }
       if (DisplayPage == TMR1_L2) {
-       WeekT_Display(1,2); 
+        TmrUpBut(1, 2);//Control Sub routine
+        WeekT_Display(1,2); 
       }
       if (DisplayPage == TMR1_L3) {
-         WeekT_Display(1,3); 
+        TmrUpBut(1, 3);//Control Sub routine
+        WeekT_Display(1,3); 
       }
       if (DisplayPage == TMR2_L1) {
-         WeekT_Display(2,1); 
+        TmrUpBut(2, 1);//Control Sub routine
+        WeekT_Display(2,1); 
       }
       if (DisplayPage == TMR2_L2) {
-         WeekT_Display(2,2); 
+        TmrUpBut(2, 2);//Control Sub routine
+        WeekT_Display(2,2); 
       }
       if (DisplayPage == TMR2_L3) {
-         WeekT_Display(2,3); 
+        TmrUpBut(2, 3);//Control Sub routine
+        WeekT_Display(2,3); 
       }
+      while(!digitalRead(UP_BUTTON));
   }
 
   //DOWN BUTTON REACTION
@@ -222,9 +230,8 @@ void loop() {
   if (!digitalRead(DOWN_BUTTON)){
      
      if(CursPlace == Home){
-        if(DisplayPage == MAIN_DISP) DisplayPage = TMR2_L3;
-        else DisplayPage = DisplayPage - 1;
-        while(!digitalRead(DOWN_BUTTON));
+        DisplayPage = DisplayPage + 1;  
+        if(DisplayPage > TMR2_L3) DisplayPage = MAIN_DISP;
         lcd.clear();
       }
     if (DisplayPage == MAIN_DISP) {
@@ -271,23 +278,30 @@ void loop() {
        MainDisplay();
      }
     if (DisplayPage == TMR1_L1) {
-       WeekT_Display(1,1); 
+      TmrDowBut(1,1);
+      WeekT_Display(1,1); 
     }
     if (DisplayPage == TMR1_L2) {
-       WeekT_Display(1,2); 
+      TmrDowBut(1,2);
+      WeekT_Display(1,2); 
     }
     if (DisplayPage == TMR1_L3) {
-       WeekT_Display(1,3); 
+      TmrDowBut(1,3);
+      WeekT_Display(1,3); 
     }
     if (DisplayPage == TMR2_L1) {
-       WeekT_Display(2,1); 
+      TmrDowBut(2,1);
+      WeekT_Display(2,1); 
     }
     if (DisplayPage == TMR2_L2) {
-       WeekT_Display(2,2); 
+      TmrDowBut(2,2);
+      WeekT_Display(2,2); 
     }
     if (DisplayPage == TMR2_L3) {
-       WeekT_Display(2,3); 
+      TmrDowBut(2,3);
+      WeekT_Display(2,3); 
     }
+    while(!digitalRead(DOWN_BUTTON));
    }
  
   
@@ -435,10 +449,76 @@ void loop() {
 /*************************************************************************************/
 /*                                 Custom Function START                             */
 /*************************************************************************************/
-
+void TmrUpBut(uint8_t Timer, uint8_t TimerLyer){
+  if(CursPlace == MON_ADR)
+    WT[Timer-1][TimerLyer-1].EnableWD(MONDAY);       
+  if(CursPlace==TUE_ADR)
+    WT[Timer-1][TimerLyer-1].EnableWD(TUESDAY);
+  if(CursPlace==WED_ADR)
+    WT[Timer-1][TimerLyer-1].EnableWD(WEDNESDAY);
+  if(CursPlace==THU_ADR)
+    WT[Timer-1][TimerLyer-1].EnableWD(THURSDAY);
+  if(CursPlace==FRI_ADR)
+    WT[Timer-1][TimerLyer-1].EnableWD(FRIDAY);
+  if(CursPlace==SAT_ADR)
+    WT[Timer-1][TimerLyer-1].EnableWD(SATURDAY);
+  if(CursPlace==SUN_ADR)
+    WT[Timer-1][TimerLyer-1].EnableWD(SUNDAY);
+ 
+  if(CursPlace==ONH_ADR){
+  if(WT[Timer-1][TimerLyer-1].OnHour < 23) WT[Timer-1][TimerLyer-1].OnHour++;
+  else WT[Timer-1][TimerLyer-1].OnHour = 0;
+  }
+  if(CursPlace==ONM_ADR){
+    if(WT[Timer-1][TimerLyer-1].OnMinutes < 59) WT[Timer-1][TimerLyer-1].OnMinutes++;
+    else WT[Timer-1][TimerLyer-1].OnMinutes = 0;
+  }
+  if(CursPlace==OFFH_ADR){
+    if(WT[Timer-1][TimerLyer-1].OffHour < 23) WT[Timer-1][TimerLyer-1].OffHour++;
+    else WT[Timer-1][TimerLyer-1].OffHour = 0;
+  }
+  if(CursPlace==OFFM_ADR){
+    if(WT[Timer-1][TimerLyer-1].OffMinutes < 59) WT[Timer-1][TimerLyer-1].OffMinutes++;
+    else WT[Timer-1][TimerLyer-1].OffMinutes = 0;
+  }
+ }
+void TmrDowBut(uint8_t Timer, uint8_t TimerLyer){
   
+  if(CursPlace == MON_ADR)
+    WT[Timer-1][TimerLyer-1].DisableWD(MONDAY);       
+  if(CursPlace==TUE_ADR)
+    WT[Timer-1][TimerLyer-1].DisableWD(TUESDAY);
+  if(CursPlace==WED_ADR)
+    WT[Timer-1][TimerLyer-1].DisableWD(WEDNESDAY);
+  if(CursPlace==THU_ADR)
+    WT[Timer-1][TimerLyer-1].DisableWD(THURSDAY);
+  if(CursPlace==FRI_ADR)
+    WT[Timer-1][TimerLyer-1].DisableWD(FRIDAY);
+  if(CursPlace==SAT_ADR)
+    WT[Timer-1][TimerLyer-1].DisableWD(SATURDAY);
+  if(CursPlace==SUN_ADR)
+    WT[Timer-1][TimerLyer-1].DisableWD(SUNDAY);
+    
+  if(CursPlace==ONH_ADR){ 
+    if(!WT[Timer-1][TimerLyer-1].OnHour)  WT[Timer-1][TimerLyer-1].OnHour = 23; //If Hour = 0 -> Hour = 23
+    else WT[Timer-1][TimerLyer-1].OnHour--; //
+  }
+  if(CursPlace==ONM_ADR){
+    if(!WT[Timer-1][TimerLyer-1].OnMinutes) WT[Timer-1][TimerLyer-1].OnMinutes = 59;
+    else WT[Timer-1][TimerLyer-1].OnMinutes--;
+  }
+  if(CursPlace==OFFH_ADR){
+    if(!WT[Timer-1][TimerLyer-1].OffHour) WT[Timer-1][TimerLyer-1].OffHour = 23;
+    else WT[Timer-1][TimerLyer-1].OffHour--;
+  }
+  if(CursPlace == OFFM_ADR){
+    if(!WT[Timer-1][TimerLyer-1].OffMinutes) WT[Timer-1][TimerLyer-1].OffMinutes = 59;
+    else WT[Timer-1][TimerLyer-1].OffMinutes--;
+  }
+  //Here validating OnTime
+} 
 void WeekT_Display(uint8_t Timer, uint8_t TimerLyer){
-  
+  lcd.noBlink();
   lcd.setCursor(0,0);
   lcd.print("Timer: ");
   lcd.print(Timer);
