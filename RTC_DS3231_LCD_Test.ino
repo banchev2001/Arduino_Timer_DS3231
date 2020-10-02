@@ -17,6 +17,7 @@ DS3231 Library Document Web: http://www.rinkydinkelectronics.com/library.php?id=
 #include <DS3231.h>
 #include <LiquidCrystal.h> // includes the LiquidCrystal Library 
 #include <WeekTimer.h> //My custom library for week timer functions
+#include <EEPROM.h> 
 
 //Define custom name of Buttons
 #define DOWN_BUTTON 10
@@ -30,6 +31,10 @@ DS3231 Library Document Web: http://www.rinkydinkelectronics.com/library.php?id=
 //Define constant for logic control
 #define ON 1
 #define OFF 0
+
+//Control First Initialization!!!
+//Un Coment for first initialization
+//#define FIRST_INI 
 
 /*************************Inicialazing Objects ************************/
   Time arduTime; //Create object arduTime wich save time in arduino
@@ -52,37 +57,49 @@ DS3231 Library Document Web: http://www.rinkydinkelectronics.com/library.php?id=
   
   /********************************************************************/
 
-  
-
+  void TmrUpBut(uint8_t Timer, uint8_t TimerLyer);
+  void TmrDowBut(uint8_t Timer, uint8_t TimerLyer);
+  void WeekT_Display(uint8_t Timer, uint8_t TimerLyer);
+  void MainDisplay();
+  void SaveTimer(int8_t Tmr, int8_t Lyr);
+  void LoadTimer(int8_t Tmr, int8_t Lyr);
 
 
 void setup() { 
 
-  /************************Initial Timers**********************/
-  WT[0][0].SetWeekPlanStr("MTWTFSS");//TMR1 lyer 1 
-  WT[0][0].SetOnTime(18,30);
-  WT[0][0].SetOffTime(22,00);
-  
-  WT[0][1].SetWeekPlanStr("-----SS");//TMR1 lyer 2 
-  WT[0][1].SetOnTime(12,30);
-  WT[0][1].SetOffTime(14,35);
-
-  WT[0][2].SetWeekPlanStr("-------");//TMR1 lyer 3 
-  WT[0][2].SetOnTime(12,30);
-  WT[0][2].SetOffTime(14,35);
-
-  WT[1][0].SetWeekPlanStr("MTWTFSS");//TMR2 lyer 1 
-  WT[1][0].SetOnTime(20,00);
-  WT[1][0].SetOffTime(22,30);
-  
-  WT[1][1].SetWeekPlanStr("-------");//TMR2 lyer 2 
-  WT[1][1].SetOnTime(11,00);
-  WT[1][1].SetOffTime(12,45);
-
-  WT[1][2].SetWeekPlanStr("-------");//TMR2 lyer 3 
-  WT[1][2].SetOnTime(20,00);
-  WT[1][2].SetOffTime(22,30);
-  
+      /************************Initial Timers**********************/
+    #ifdef FIRST_INI //Part of code for first initialisation of timers
+                    //If not difained is not executed 
+      
+      WT[0][0].SetWeekPlanStr("MTWTFSS");//TMR1 lyer 1 
+      WT[0][0].SetOnTime(18,30);
+      WT[0][0].SetOffTime(22,00);
+      
+      WT[0][1].SetWeekPlanStr("-----SS");//TMR1 lyer 2 
+      WT[0][1].SetOnTime(12,30);
+      WT[0][1].SetOffTime(14,35);
+    
+      WT[0][2].SetWeekPlanStr("-------");//TMR1 lyer 3 
+      WT[0][2].SetOnTime(12,30);
+      WT[0][2].SetOffTime(14,35);
+    
+      WT[1][0].SetWeekPlanStr("MTWTFSS");//TMR2 lyer 1 
+      WT[1][0].SetOnTime(20,00);
+      WT[1][0].SetOffTime(22,30);
+      
+      WT[1][1].SetWeekPlanStr("-------");//TMR2 lyer 2 
+      WT[1][1].SetOnTime(11,00);
+      WT[1][1].SetOffTime(12,45);
+    
+      WT[1][2].SetWeekPlanStr("-------");//TMR2 lyer 3 
+      WT[1][2].SetOnTime(20,00);
+      WT[1][2].SetOffTime(22,30);
+    
+    SaveTimer(1,1); SaveTimer(1,2); SaveTimer(1,3); SaveTimer(2,1); SaveTimer(2,2); SaveTimer(2,3);
+     #endif
+    //Loading all Settings from EEPROM    
+    LoadTimer(1,1); LoadTimer(1,2); LoadTimer(1,3); LoadTimer(2,1); LoadTimer(2,2); LoadTimer(2,3);
+    
   /********************** EOF Initial Timers ******************/
 
    
@@ -136,7 +153,6 @@ void loop() {
             
             if(CursPlace > OFFM_ADR){ //Write Configured Settings in EEPROM
                 CursPlace = Home;
-            
             }
       }
   }
@@ -318,99 +334,68 @@ void loop() {
        
        //Place Curssor on the Time
        //--------------------------------------------
-       if(CursPlace == HOUR_ADR){
+       if(CursPlace == HOUR_ADR)
         lcd.setCursor(7,0);
-       }
-       if(CursPlace == MINUTES_ADR){
+       if(CursPlace == MINUTES_ADR)
         lcd.setCursor(10,0);
-       }
-       if(CursPlace == SECONDS_ADR){
+       if(CursPlace == SECONDS_ADR)
         lcd.setCursor(13,0);
-       }
-
        //Place Curssor on the Date
        //--------------------------------------------
-       if(CursPlace == DAY_ADR){
+       if(CursPlace == DAY_ADR)
         lcd.setCursor(7,1);
-       }
-       if(CursPlace == MONTH_ADR){
+       if(CursPlace == MONTH_ADR)
         lcd.setCursor(10,1);
-       }
-       if(CursPlace == YEAR_ADR){
+       if(CursPlace == YEAR_ADR)
         lcd.setCursor(15,1);
-       }
-
        //Place Curssor on the Day Of Week
        //-------------------------------------------
-       if(CursPlace == DOW_ADR){
+       if(CursPlace == DOW_ADR)
         lcd.setCursor(6,2);
-       }
-
        //Place Curssor on the Monday
        //-------------------------------------------
-       if(CursPlace == MON_ADR){
+       if(CursPlace == MON_ADR)
         lcd.setCursor(6,1);
-       }
-
        //Place Curssor on the Tuesday
        //-------------------------------------------
-       if(CursPlace == TUE_ADR){
+       if(CursPlace == TUE_ADR)
         lcd.setCursor(7,1);
-       }
-
        //Place Curssor on the Wednesday
        //-------------------------------------------
-       if(CursPlace == WED_ADR){
+       if(CursPlace == WED_ADR)
         lcd.setCursor(8,1);
-       }
-
        //Place Curssor on the Thursday
        //-------------------------------------------
-       if(CursPlace == THU_ADR){
+       if(CursPlace == THU_ADR)
         lcd.setCursor(9,1);
-       }
-
        //Place Curssor on the Friday
        //-------------------------------------------
-       if(CursPlace == FRI_ADR){
+       if(CursPlace == FRI_ADR)
         lcd.setCursor(10,1);
-       }
-
        //Place Curssor on the Saturday
        //-------------------------------------------
-       if(CursPlace == SAT_ADR){
+       if(CursPlace == SAT_ADR)
         lcd.setCursor(11,1);
-       }
-
        //Place Curssor on the Saturday
        //-------------------------------------------
-       if(CursPlace == SUN_ADR){
+       if(CursPlace == SUN_ADR)
         lcd.setCursor(12,1);
-       }
-
        //Place Curssor on the On Hour parameter
        //-------------------------------------------
-       if(CursPlace == ONH_ADR){
+       if(CursPlace == ONH_ADR)
         lcd.setCursor(6,2);
-       }
-
        //Place Curssor on the On Minutes parameter
        //-------------------------------------------
-       if(CursPlace == ONM_ADR){
+       if(CursPlace == ONM_ADR)
         lcd.setCursor(9,2);
-       }
-
        //Place Curssor on the Off Hour parameter
        //-------------------------------------------
-       if(CursPlace == OFFH_ADR){
+       if(CursPlace == OFFH_ADR)
         lcd.setCursor(6,3);
-       }
-
        //Place Curssor on the Off Minutes parameter
        //-------------------------------------------
-       if(CursPlace == OFFM_ADR){
+       if(CursPlace == OFFM_ADR)
         lcd.setCursor(9,3);
-       }
        
    //Here place code for checking some of timers Out
    //==================================================================
@@ -466,20 +451,24 @@ void TmrUpBut(uint8_t Timer, uint8_t TimerLyer){
     WT[Timer-1][TimerLyer-1].EnableWD(SUNDAY);
  
   if(CursPlace==ONH_ADR){
-  if(WT[Timer-1][TimerLyer-1].OnHour < 23) WT[Timer-1][TimerLyer-1].OnHour++;
-  else WT[Timer-1][TimerLyer-1].OnHour = 0;
+    if(WT[Timer-1][TimerLyer-1].OnHour < 23) WT[Timer-1][TimerLyer-1].OnHour++;
+    else WT[Timer-1][TimerLyer-1].OnHour = 0;
+    WT[Timer-1][TimerLyer-1].ValOffTime();
   }
   if(CursPlace==ONM_ADR){
     if(WT[Timer-1][TimerLyer-1].OnMinutes < 59) WT[Timer-1][TimerLyer-1].OnMinutes++;
     else WT[Timer-1][TimerLyer-1].OnMinutes = 0;
+    WT[Timer-1][TimerLyer-1].ValOffTime();
   }
   if(CursPlace==OFFH_ADR){
     if(WT[Timer-1][TimerLyer-1].OffHour < 23) WT[Timer-1][TimerLyer-1].OffHour++;
     else WT[Timer-1][TimerLyer-1].OffHour = 0;
+    WT[Timer-1][TimerLyer-1].ValOnTime();
   }
   if(CursPlace==OFFM_ADR){
     if(WT[Timer-1][TimerLyer-1].OffMinutes < 59) WT[Timer-1][TimerLyer-1].OffMinutes++;
     else WT[Timer-1][TimerLyer-1].OffMinutes = 0;
+    WT[Timer-1][TimerLyer-1].ValOnTime();
   }
  }
 void TmrDowBut(uint8_t Timer, uint8_t TimerLyer){
@@ -502,18 +491,22 @@ void TmrDowBut(uint8_t Timer, uint8_t TimerLyer){
   if(CursPlace==ONH_ADR){ 
     if(!WT[Timer-1][TimerLyer-1].OnHour)  WT[Timer-1][TimerLyer-1].OnHour = 23; //If Hour = 0 -> Hour = 23
     else WT[Timer-1][TimerLyer-1].OnHour--; //
+    WT[Timer-1][TimerLyer-1].ValOffTime();
   }
   if(CursPlace==ONM_ADR){
     if(!WT[Timer-1][TimerLyer-1].OnMinutes) WT[Timer-1][TimerLyer-1].OnMinutes = 59;
     else WT[Timer-1][TimerLyer-1].OnMinutes--;
+    WT[Timer-1][TimerLyer-1].ValOffTime();
   }
   if(CursPlace==OFFH_ADR){
     if(!WT[Timer-1][TimerLyer-1].OffHour) WT[Timer-1][TimerLyer-1].OffHour = 23;
     else WT[Timer-1][TimerLyer-1].OffHour--;
+    WT[Timer-1][TimerLyer-1].ValOnTime();
   }
   if(CursPlace == OFFM_ADR){
     if(!WT[Timer-1][TimerLyer-1].OffMinutes) WT[Timer-1][TimerLyer-1].OffMinutes = 59;
     else WT[Timer-1][TimerLyer-1].OffMinutes--;
+    WT[Timer-1][TimerLyer-1].ValOnTime();
   }
   //Here validating OnTime
 } 
@@ -550,9 +543,7 @@ void WeekT_Display(uint8_t Timer, uint8_t TimerLyer){
   lcd.print(WT[Timer-1][TimerLyer-1].OffMinutes, DEC);
   
 }
-
 void MainDisplay(){
-
 
    if (CursPlace == Home) arduTime = dsTime.getTime();
    
@@ -589,6 +580,19 @@ void MainDisplay(){
    lcd.print(" C");
   
 }
+void SaveTimer(int8_t Tmr, int8_t Lyr){
+  unsigned int MemAddres = 0;
+                       //Calculation of addres is magic :)
+  MemAddres = sizeof(WT) * (3*Tmr - Lyr -4);
+  EEPROM.put(MemAddres,WT[Tmr -1][Lyr - 1]);  
+ }
+void LoadTimer (int8_t Tmr, int8_t Lyr){
+  unsigned int MemAddres = 0;
+                      //Calculation of addres is magic :)
+  MemAddres = sizeof(WT) * (3*Tmr - Lyr -4);
+  EEPROM.get(MemAddres,WT[Tmr -1][Lyr - 1]);
+ }
+
 /*************************************************************************************/
 /*                                 Custom Function END                             */
 /*************************************************************************************/
