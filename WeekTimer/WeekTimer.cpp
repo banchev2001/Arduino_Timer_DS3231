@@ -40,7 +40,7 @@ void WeekTimer::DisableWD(int8_t DOW){
 	WeekPlan &= ~(1UL << DOW); //Clear Bit
 }
 
-void WeekTimer::SetWeekPlanStr(char* WeekPlanStr){
+void WeekTimer::SetWeekPlanStr(const char* WeekPlanStr){
 	
 	for (int i = 0; i<7; i++){
 		
@@ -122,6 +122,25 @@ void WeekTimer::SetOffTime(int8_t Hr, int8_t Min){
 	OffMinutes = Min;	
 }
 
+void WeekTimer:: ValOnTime(void){
+	
+	if(_CombTime(OnHour,OnMinutes) > _CombTime(OffHour,OffMinutes)){
+		
+		OnHour = OffHour; OnMinutes = OffMinutes;
+		
+	}
+	
+}
+
+void WeekTimer:: ValOffTime(void){
+	
+	if(_CombTime(OnHour,OnMinutes) > _CombTime(OffHour,OffMinutes)){
+		
+		OffHour = OnHour; OffMinutes = OnMinutes;
+		
+	}
+	
+}
 /***************************** Private ***************************/
 
  int16_t WeekTimer::_CombTime (int8_t Hr, int8_t Min){
