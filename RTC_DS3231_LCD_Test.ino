@@ -2,16 +2,16 @@
 Start Date: 29.08.2020
 Source Web: https://howtomechatronics.com/tutorials/arduino/arduino-ds3231-real-time-clock-tutorial
 DS3231 Library Document Web: http://www.rinkydinkelectronics.com/library.php?id=73
+
+Author: Stoian Banchev
+Web: https://github.com/banchev2001/Arduino_Timer_DS3231
 */
 
 /*
 * Arduino DS3231 Real Time Clock Module Tutorial
-*
 * Crated by Dejan Nedelkovski,
 * www.HowToMechatronics.com
-*
 * DS3231 Library made by Henning Karlsen which can be found and downloaded from his website, www.rinkydinkelectronics.com.
-*
 */
 #include <Arduino.h>
 #include <DS3231.h>
@@ -32,9 +32,9 @@ DS3231 Library Document Web: http://www.rinkydinkelectronics.com/library.php?id=
 #define ON 1
 #define OFF 0
 
-//Control First Initialization!!!
-//Un Coment for first initialization
-//#define FIRST_INI 
+/***********Control First Initialization!!!********************/
+//#define FIRST_INI //Uncoment for first load to Arduino board and then coment back!
+/***********Control First Initialization!!!********************/
 
 /*************************Inicialazing Objects ************************/
   Time arduTime; //Create object arduTime wich save time in arduino
@@ -57,13 +57,13 @@ DS3231 Library Document Web: http://www.rinkydinkelectronics.com/library.php?id=
   
   /********************************************************************/
 
-  void TmrUpBut(uint8_t Timer, uint8_t TimerLyer);
-  void TmrDowBut(uint8_t Timer, uint8_t TimerLyer);
-  void WeekT_Display(uint8_t Timer, uint8_t TimerLyer);
-  void MainDisplay();
-  void SaveTimer(int8_t Tmr, int8_t Lyr);
-  void LoadTimer(int8_t Tmr, int8_t Lyr);
-
+  void TmrUpBut(uint8_t Timer, uint8_t TimerLyer); //Control Prssing up button on timer display page
+  void TmrDowBut(uint8_t Timer, uint8_t TimerLyer);//Control Prssing down button on timer display page
+  void WeekT_Display(uint8_t Timer, uint8_t TimerLyer); //Show Timer layer display 
+  void MainDisplay();//Show main display
+  void SaveTimer(int8_t Tmr, int8_t Lyr); // Save Timers Layers settings in EEPROM
+  void LoadTimer(int8_t Tmr, int8_t Lyr); // Load Timers Layers settings from EEPROM
+  void SaveDispMsg(int8_t Tmr, int8_t Lyr); //Display Masage after save in EEPROM
 
 void setup() { 
 
@@ -71,32 +71,33 @@ void setup() {
     #ifdef FIRST_INI //Part of code for first initialisation of timers
                     //If not difained is not executed 
       
-      WT[0][0].SetWeekPlanStr("MTWTFSS");//TMR1 lyer 1 
+      WT[0][0].SetWeekPlanStr("MTWTFSS");//TMR1 lyer 1 Settings
       WT[0][0].SetOnTime(18,30);
       WT[0][0].SetOffTime(22,00);
       
-      WT[0][1].SetWeekPlanStr("-----SS");//TMR1 lyer 2 
+      WT[0][1].SetWeekPlanStr("-----SS");//TMR1 lyer 2 Settings 
       WT[0][1].SetOnTime(12,30);
       WT[0][1].SetOffTime(14,35);
     
-      WT[0][2].SetWeekPlanStr("-------");//TMR1 lyer 3 
+      WT[0][2].SetWeekPlanStr("-------");//TMR1 lyer 3 Settings
       WT[0][2].SetOnTime(12,30);
       WT[0][2].SetOffTime(14,35);
     
-      WT[1][0].SetWeekPlanStr("MTWTFSS");//TMR2 lyer 1 
+      WT[1][0].SetWeekPlanStr("MTWTFSS");//TMR2 lyer 1 Settings
       WT[1][0].SetOnTime(20,00);
       WT[1][0].SetOffTime(22,30);
       
-      WT[1][1].SetWeekPlanStr("-------");//TMR2 lyer 2 
+      WT[1][1].SetWeekPlanStr("-------");//TMR2 lyer 2 Settings
       WT[1][1].SetOnTime(11,00);
       WT[1][1].SetOffTime(12,45);
     
-      WT[1][2].SetWeekPlanStr("-------");//TMR2 lyer 3 
+      WT[1][2].SetWeekPlanStr("-------");//TMR2 lyer 3 Settings
       WT[1][2].SetOnTime(20,00);
       WT[1][2].SetOffTime(22,30);
-    
+    //Write all settings to EEPROM
     SaveTimer(1,1); SaveTimer(1,2); SaveTimer(1,3); SaveTimer(2,1); SaveTimer(2,2); SaveTimer(2,3);
      #endif
+     
     //Loading all Settings from EEPROM    
     LoadTimer(1,1); LoadTimer(1,2); LoadTimer(1,3); LoadTimer(2,1); LoadTimer(2,2); LoadTimer(2,3);
     
@@ -149,9 +150,40 @@ void loop() {
       else{ 
           if(CursPlace < DOW_ADR) CursPlace = DOW_ADR;
           CursPlace = CursPlace + 1;
+          
           while(!digitalRead(SELECT_BUTTON));
             
             if(CursPlace > OFFM_ADR){ //Write Configured Settings in EEPROM
+                if(DisplayPage == TMR1_L1){
+                  SaveTimer(1,1);
+                  SaveDispMsg(1,1);
+                  WeekT_Display(1,1);
+                }
+                if(DisplayPage == TMR1_L2){
+                  SaveTimer(1,2);
+                  SaveDispMsg(1,2);
+                  WeekT_Display(1,2);
+                }
+                if(DisplayPage == TMR1_L3){
+                  SaveTimer(1,3);
+                  SaveDispMsg(1,3);
+                  WeekT_Display(1,3); 
+                }
+                if(DisplayPage == TMR2_L1){
+                  SaveTimer(2,1);
+                  SaveDispMsg(2,1);
+                  WeekT_Display(2,1); 
+                }
+                if(DisplayPage == TMR2_L2){
+                  SaveTimer(2,2);
+                  SaveDispMsg(2,2);
+                  WeekT_Display(2,2); 
+                }
+                if(DisplayPage == TMR2_L3){
+                  SaveTimer(2,3);
+                  SaveDispMsg(2,3);
+                  WeekT_Display(2,3); 
+                }    
                 CursPlace = Home;
             }
       }
@@ -325,11 +357,12 @@ void loop() {
        //Turn Off curssor when rotate all parameters
        if(CursPlace == Home){
         lcd.noBlink();
-        if(DisplayPage == MAIN_DISP) MainDisplay(); //Update Main display      
+        if (DisplayPage == MAIN_DISP) MainDisplay(); //Update Main display  
+
+  
        }
-       
        else{
-       lcd.blink();
+        lcd.blink();
        }
        
        //Place Curssor on the Time
@@ -401,28 +434,28 @@ void loop() {
    //==================================================================
    if(CursPlace == Home)arduTime = dsTime.getTime(); //Get current time from DS3231
    
-   if(WT[0][0].Check(arduTime.dow, arduTime.hour, arduTime.min)||
-      WT[0][1].Check(arduTime.dow, arduTime.hour, arduTime.min)||
-      WT[0][2].Check(arduTime.dow, arduTime.hour, arduTime.min))
+   if(WT[0][0].Check(arduTime.dow, arduTime.hour, arduTime.min)|| //OR TMR1 L1
+      WT[0][1].Check(arduTime.dow, arduTime.hour, arduTime.min)|| //OR TMR1 L2
+      WT[0][2].Check(arduTime.dow, arduTime.hour, arduTime.min))  //OR TMR1 L3
    
-            digitalWrite(TMR1_OUT, HIGH);
+            digitalWrite(TMR1_OUT, HIGH); //Set ON output 1 
     else
-            digitalWrite(TMR1_OUT, LOW);
+            digitalWrite(TMR1_OUT, LOW); //Set OFF output 1
 
-    if(WT[1][0].Check(arduTime.dow, arduTime.hour, arduTime.min)||
-       WT[1][1].Check(arduTime.dow, arduTime.hour, arduTime.min)||
-       WT[1][2].Check(arduTime.dow, arduTime.hour, arduTime.min))
+    if(WT[1][0].Check(arduTime.dow, arduTime.hour, arduTime.min)||  //OR TMR2 L1
+       WT[1][1].Check(arduTime.dow, arduTime.hour, arduTime.min)||  //OR TMR2 L2
+       WT[1][2].Check(arduTime.dow, arduTime.hour, arduTime.min))   //OR TMR2 L3
    
-            digitalWrite(TMR2_OUT, HIGH);
+            digitalWrite(TMR2_OUT, HIGH); //Set ON output 2 
     else
-            digitalWrite(TMR2_OUT, LOW);
+            digitalWrite(TMR2_OUT, LOW); //Set OFF output 2
    
    //==================================================================
    //End of code checking timers
    
    
  
-   //delay(200);
+   delay(70); //debounce delay for buttons!
    
 }//End of Main Loop bracket
 /*************************************************************************************/
@@ -592,7 +625,19 @@ void LoadTimer (int8_t Tmr, int8_t Lyr){
   MemAddres = sizeof(WT) * (3*Tmr - Lyr -4);
   EEPROM.get(MemAddres,WT[Tmr -1][Lyr - 1]);
  }
+void SaveDispMsg(int8_t Tmr, int8_t Lyr){
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Timer: ");
+  lcd.print(Tmr);
+  lcd.print(" Lyer: ");
+  lcd.print(Lyr);
 
+  lcd.setCursor(0,1);
+  lcd.print("is saved in EEPROM");
+  delay(2500);
+  lcd.clear();  
+}
 /*************************************************************************************/
 /*                                 Custom Function END                             */
 /*************************************************************************************/
